@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supermarket API</title>
+    <script>
+        // Si ya hay token guardado, redirigir al dashboard; si no, al login
+        const token = localStorage.getItem('token');
+        if (token) {
+            window.location.href = 'dashboard.html';
+        } else {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body>
+    <p>Redirigiendo...</p>
+</body>
+</html>

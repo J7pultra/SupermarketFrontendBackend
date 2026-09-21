@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Usuario - Supermarket API</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 480px; margin: 40px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+
+    <h2>Supermercado - Crear Cuenta</h2>
+    <p>Completa los siguientes datos para registrarte.</p>
+
+    <div id="mensaje" style="display: none; padding: 10px; margin-bottom: 15px; border-radius: 4px;"></div>
+
+    <form id="registerForm">
+        <div style="margin-bottom: 15px;">
+            <label for="name"><b>Nombre Completo:</b></label><br>
+            <input type="text" id="name" name="name" required style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;" placeholder="Ej: Juan Perez">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="email"><b>Correo Electrónico:</b></label><br>
+            <input type="email" id="email" name="email" required style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;" placeholder="ejemplo@correo.com">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="password"><b>Contraseña:</b></label><br>
+            <small style="color: #666;">(Mínimo 8 caracteres, al menos 1 letra mayúscula y 1 número)</small><br>
+            <input type="password" id="password" name="password" required style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;" placeholder="Ej: Password123">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="role"><b>Rol de Usuario:</b></label><br>
+            <select id="role" name="role" style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;">
+                <option value="CLIENTE" selected>Cliente (Público)</option>
+                <option value="CAJERO">Cajero (Requiere Employee ID)</option>
+                <option value="ADMIN">Administrador (Requiere Employee ID)</option>
+            </select>
+        </div>
+
+        <div id="employeeIdGroup" style="margin-bottom: 15px; display: none;">
+            <label for="employeeId"><b>ID de Empleado (Employee ID):</b></label><br>
+            <input type="text" id="employeeId" name="employeeId" style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;" placeholder="Ej: EMP-001">
+        </div>
+
+        <button type="submit" id="btnRegister" style="width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            Registrarse
+        </button>
+    </form>
+
+    <hr style="margin: 25px 0;">
+
+    <p style="text-align: center;">
+        ¿Ya tienes una cuenta? <a href="login.html">Inicia sesión aquí</a>
+    </p>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const roleSelect = document.getElementById('role');
+        const employeeIdGroup = document.getElementById('employeeIdGroup');
+        const employeeIdInput = document.getElementById('employeeId');
+        const mensajeDiv = document.getElementById('mensaje');
+        const btnRegister = document.getElementById('btnRegister');
+
+        // Mostrar u ocultar el campo employeeId según el rol seleccionado
+        roleSelect.addEventListener('change', function() {
+            if (this.value === 'CAJERO' || this.value === 'ADMIN') {
+                employeeIdGroup.style.display = 'block';
+                employeeIdInput.required = true;
+            } else {
+                employeeIdGroup.style.display = 'none';
+                employeeIdInput.required = false;
+                employeeIdInput.value = '';
+            }
+        });
+
+        registerForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const role = roleSelect.value;
+            const employeeId = employeeIdInput.value.trim() || null;
+
+            btnRegister.disabled = true;
+            btnRegister.innerText = 'Registrando...';
+            mensajeDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ name, email, password, role, employeeId })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    mensajeDiv.style.display = 'block';
+                    mensajeDiv.style.backgroundColor = '#d4edda';
+                    mensajeDiv.style.color = '#155724';
+                    mensajeDiv.innerHTML = '<b>¡Registro exitoso!</b> Redirigiendo al login para que puedas ingresar...';
+
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 1200);
+                } else {
+                    mensajeDiv.style.display = 'block';
+                    mensajeDiv.style.backgroundColor = '#f8d7da';
+                    mensajeDiv.style.color = '#721c24';
+                    mensajeDiv.innerText = result.message || 'Error al registrar el usuario';
+                    btnRegister.disabled = false;
+                    btnRegister.innerText = 'Registrarse';
+                }
+            } catch (error) {
+                mensajeDiv.style.display = 'block';
+                mensajeDiv.style.backgroundColor = '#f8d7da';
+                mensajeDiv.style.color = '#721c24';
+                mensajeDiv.innerText = 'Error de conexión con el servidor.';
+                btnRegister.disabled = false;
+                btnRegister.innerText = 'Registrarse';
+            }
+        });
+    </script>
+</body>
+</html>

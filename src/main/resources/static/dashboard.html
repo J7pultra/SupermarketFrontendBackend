@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Pruebas de API - Supermarket</title>
+    <script>
+        // Verificación de autenticación inmediata
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+    </script>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px;">
+        <h2 style="margin: 0;">Panel de Pruebas de API - Supermercado</h2>
+        <button id="btnLogout" style="padding: 8px 15px; background-color: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Cerrar Sesión
+        </button>
+    </div>
+
+    <!-- Información del Usuario Autenticado -->
+    <div style="background-color: #eef6ff; padding: 15px; border-radius: 6px; margin: 20px 0;">
+        <h3 style="margin-top: 0;">Información del Usuario Conectado</h3>
+        <p><b>Nombre:</b> <span id="userName">-</span></p>
+        <p><b>Email:</b> <span id="userEmail">-</span></p>
+        <p><b>Rol:</b> <span id="userRole" style="padding: 3px 8px; background-color: #007bff; color: white; border-radius: 4px;">-</span></p>
+        <p><b>Token JWT Actual:</b></p>
+        <input type="text" id="tokenDisplay" readonly style="width: 100%; padding: 6px; font-family: monospace; font-size: 12px; box-sizing: border-box;">
+    </div>
+
+    <!-- Botones de Prueba de Endpoints -->
+    <div style="margin: 20px 0;">
+        <h3>Probar Endpoints de la API</h3>
+        <p>Haz clic en cualquiera de los botones para enviar la petición con tu Token JWT:</p>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+            <button onclick="probarEndpoint('/health', 'GET', false)" style="padding: 10px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                1. GET /health (Público)
+            </button>
+
+            <button onclick="probarEndpoint('/api/auth/profile', 'GET', true)" style="padding: 10px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                2. GET /api/auth/profile (Autenticado)
+            </button>
+
+            <button onclick="probarEndpoint('/api/auth/cashier-area', 'GET', true)" style="padding: 10px; background-color: #ffc107; color: black; border: none; border-radius: 4px; cursor: pointer;">
+                3. GET /api/auth/cashier-area (Cajero o Admin)
+            </button>
+
+            <button onclick="probarEndpoint('/api/auth/admin-only', 'GET', true)" style="padding: 10px; background-color: #6f42c1; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                4. GET /api/auth/admin-only (Solo Admin)
+            </button>
+        </div>
+    </div>
+
+    <!-- Visor de Resultados -->
+    <div style="margin-top: 20px; border-top: 1px solid #ddd; padding-top: 15px;">
+        <h3>Resultado de la Petición</h3>
+        <p><b>Endpoint probado:</b> <span id="resEndpoint" style="font-family: monospace; color: #0056b3;">Ninguno todavía</span></p>
+        <p><b>Estado HTTP:</b> <span id="resStatus" style="font-weight: bold;">-</span></p>
+        
+        <p><b>Respuesta del Servidor (JSON):</b></p>
+        <pre id="resBody" style="background-color: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 4px; overflow-x: auto; min-height: 80px; font-family: Consolas, monospace;">Presiona un botón para ver la respuesta aquí...</pre>
+    </div>
+
+    <script>
+        // Cargar datos del usuario
+        const storedUser = localStorage.getItem('user');
+        const storedToken = localStorage.getItem('token');
+
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                document.getElementById('userName').innerText = user.name || '-';
+                document.getElementById('userEmail').innerText = user.email || '-';
+                document.getElementById('userRole').innerText = user.role || '-';
+            } catch (e) {
+                console.error(e);
+            }
+        }
+        if (storedToken) {
+            document.getElementById('tokenDisplay').value = storedToken;
+        }
+
+        // Botón cerrar sesión
+        document.getElementById('btnLogout').addEventListener('click', function() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        });
+
+        // Función para probar endpoints
+        async function probarEndpoint(url, method, conToken) {
+            document.getElementById('resEndpoint').innerText = `${method} ${url}`;
+            document.getElementById('resStatus').innerText = 'Cargando...';
+            document.getElementById('resStatus').style.color = '#555';
+            document.getElementById('resBody').innerText = 'Enviando petición...';
+
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (conToken) {
+                headers['Authorization'] = 'Bearer ' + localStorage.getItem('token');
+            }
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: headers
+                });
+
+                const statusCode = response.status;
+                const statusText = response.statusText;
+                const resStatusSpan = document.getElementById('resStatus');
+
+                resStatusSpan.innerText = `${statusCode} ${statusText}`;
+
+                if (statusCode >= 200 && statusCode < 300) {
+                    resStatusSpan.style.color = '#28a745'; // Verde para éxito
+                } else if (statusCode === 401 || statusCode === 403) {
+                    resStatusSpan.style.color = '#fd7e14'; // Naranja para falta de permisos / no autorizado
+                } else {
+                    resStatusSpan.style.color = '#dc3545'; // Rojo para error
+                }
+
+                let bodyData;
+                const text = await response.text();
+                try {
+                    bodyData = JSON.parse(text);
+                    document.getElementById('resBody').innerText = JSON.stringify(bodyData, null, 2);
+                } catch {
+                    document.getElementById('resBody').innerText = text || '(Respuesta vacía)';
+                }
+
+            } catch (error) {
+                document.getElementById('resStatus').innerText = 'Error de conexión';
+                document.getElementById('resStatus').style.color = '#dc3545';
+                document.getElementById('resBody').innerText = error.message;
+            }
+        }
+    </script>
+</body>
+</html>

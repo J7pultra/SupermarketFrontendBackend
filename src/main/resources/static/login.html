@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Supermarket API</title>
+</head>
+<body style="font-family: Arial, sans-serif; max-width: 450px; margin: 40px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+
+    <h2>Supermercado - Iniciar Sesión</h2>
+    <p>Ingresa tus credenciales para acceder al sistema.</p>
+
+    <div id="mensaje" style="display: none; padding: 10px; margin-bottom: 15px; border-radius: 4px;"></div>
+
+    <form id="loginForm">
+        <div style="margin-bottom: 15px;">
+            <label for="email"><b>Correo Electrónico:</b></label><br>
+            <input type="email" id="email" name="email" required style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;" placeholder="ejemplo@correo.com">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label for="password"><b>Contraseña:</b></label><br>
+            <input type="password" id="password" name="password" required style="width: 100%; padding: 8px; margin-top: 5px; box-sizing: border-box;" placeholder="Tu contraseña">
+        </div>
+
+        <button type="submit" id="btnLogin" style="width: 100%; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px;">
+            Iniciar Sesión
+        </button>
+    </form>
+
+    <hr style="margin: 25px 0;">
+
+    <p style="text-align: center;">
+        ¿No tienes una cuenta? <a href="register.html">Regístrate aquí</a>
+    </p>
+
+    <script>
+        // Si ya hay token guardado, ir directo al dashboard
+        if (localStorage.getItem('token')) {
+            window.location.href = 'dashboard.html';
+        }
+
+        const loginForm = document.getElementById('loginForm');
+        const mensajeDiv = document.getElementById('mensaje');
+        const btnLogin = document.getElementById('btnLogin');
+
+        loginForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+
+            btnLogin.disabled = true;
+            btnLogin.innerText = 'Iniciando sesión...';
+            mensajeDiv.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const result = await response.json();
+
+                if (response.ok && result.status === 'success') {
+                    // Guardar token y datos del usuario en localStorage
+                    localStorage.setItem('token', result.data.token);
+                    localStorage.setItem('user', JSON.stringify(result.data.user));
+
+                    mensajeDiv.style.display = 'block';
+                    mensajeDiv.style.backgroundColor = '#d4edda';
+                    mensajeDiv.style.color = '#155724';
+                    mensajeDiv.innerText = '¡Autenticación exitosa! Redirigiendo al panel...';
+
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 800);
+                } else {
+                    mensajeDiv.style.display = 'block';
+                    mensajeDiv.style.backgroundColor = '#f8d7da';
+                    mensajeDiv.style.color = '#721c24';
+                    mensajeDiv.innerText = result.message || 'Error al iniciar sesión';
+                    btnLogin.disabled = false;
+                    btnLogin.innerText = 'Iniciar Sesión';
+                }
+            } catch (error) {
+                mensajeDiv.style.display = 'block';
+                mensajeDiv.style.backgroundColor = '#f8d7da';
+                mensajeDiv.style.color = '#721c24';
+                mensajeDiv.innerText = 'Error de conexión con el servidor.';
+                btnLogin.disabled = false;
+                btnLogin.innerText = 'Iniciar Sesión';
+            }
+        });
+    </script>
+</body>
+</html>
