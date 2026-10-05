@@ -1,238 +1,195 @@
-# SupermarketApi (Spring Boot REST API)
+# 🛒 Supermarket OS — Sistema Integrado de Supermercado & Control de Acceso (RBAC)
 
-API RESTful profesional para la gestión de un supermercado, desarrollada desde cero en **Java 17** y **Spring Boot 3**, utilizando arquitectura por capas, **Spring Security** para autenticación basada en JWT y control de acceso basado en roles (RBAC), y **Spring Data JPA (Hibernate)** con **PostgreSQL**.
+> **Proyecto de Ingeniería Web — Evaluación Práctica y Documentación Técnica**  
+> **Backend:** Java 17 + Spring Boot 3.2.5 + Spring Security 6 (JWT) + Hibernate JPA + Base de Datos H2 / PostgreSQL  
+> **Frontend:** React 19 + Vite 8 + Tailwind CSS v4 + Stitch UI Components  
+> **Autor:** J7pultra  
+
+---
+
+## 📌 Tabla de Contenidos
+1. [Descripción General](#-descripción-general)
+2. [Arquitectura del Proyecto](#-arquitectura-del-proyecto)
+3. [📸 Galería de la Aplicación Funcionando](#-galería-de-la-aplicación-funcionando)
+4. [⚡ Guía de Ejecución Rápida (Para el Docente / Evaluador)](#-guía-de-ejecución-rápida-para-el-docente--evaluador)
+5. [🔑 Credenciales de Prueba (Demo RBAC)](#-credenciales-de-prueba-demo-rbac)
+6. [📡 Referencia de Endpoints del Backend](#-referencia-de-endpoints-del-backend)
+7. [📑 Documentos de Arquitectura y Diseño](#-documentos-de-arquitectura-y-diseño)
+
+---
+
+## 📖 Descripción General
+
+**Supermarket OS** es una solución integral full-stack para la gestión de un supermercado moderno. El sistema implementa un modelo de seguridad basado en roles (**RBAC**) con tokens criptográficos JWT y desacoplamiento total entre frontend y backend:
+
+- **Rol CLIENTE:** Experiencia de compra autoservicio, consulta de saldo de **Puntos Fresh** acumulados, barra de progreso a niveles VIP (Platino) y código QR para canje en caja.
+- **Rol CAJERO:** Terminal de Punto de Venta (**POS**) con catálogo rápido, escaneo simulado de código de barras, cálculo de subtotales, IVA (15%), canje de puntos de fidelidad y emisión de ticket electrónico con QR.
+- **Rol ADMINISTRADOR:** Consola de gobernanza con indicadores KPI en tiempo real (usuarios, puntos, cajas), gestión de personal con `Employee ID` y telemetría de seguridad.
 
 ---
 
 ## 🏛 Arquitectura del Proyecto
 
-El proyecto sigue las mejores prácticas de la arquitectura en capas de Spring Boot:
+El repositorio está organizado como un monorepo limpio y estructurado:
 
-`	ext
-com.supermarket.api
-├── config/             # Configuración general y de seguridad
-├── controller/         # Controladores REST (endpoints HTTP)
-├── dto/                # Data Transfer Objects y objetos de petición/respuesta
-├── entity/             # Entidades JPA de base de datos (User, Role)
-├── exception/          # Excepciones de negocio y GlobalExceptionHandler (@RestControllerAdvice)
-├── repository/         # Interfaces Spring Data JPA para acceso a datos
-├── security/           # Filtros JWT, generador/validador de tokens y SecurityConfig
-└── service/            # Lógica de negocio (AuthService y su implementación)
-`
-
----
-
-## 🚀 Requisitos Previos
-
-- **Java 17 o superior** (OpenJDK, Eclipse Temurin, Oracle JDK, etc.)
-- *Nota*: No es necesario tener Maven instalado (el repositorio incluye `mvnw` y `mvnw.cmd`). Tampoco es necesario tener Docker ni PostgreSQL instalado; la API utiliza por defecto una base de datos **H2 en memoria** lista para usar.
-
----
-
-## ⚡ Ejecución Rápida (Recomendada para Evaluación y Pruebas)
-
-1. Clona el repositorio y abre una terminal en la carpeta raíz `SupermarketApi`.
-2. Ejecuta el comando correspondiente a tu sistema operativo:
-
-   **En Windows:**
-   ```cmd
-   mvnw.cmd spring-boot:run
-   ```
-
-   **En Linux / macOS:**
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-
-3. La API arrancará de inmediato en:
-   - **API Base URL**: `http://localhost:3000`
-   - **Health Check**: `http://localhost:3000/health`
-   - **Consola H2 (Base de Datos en Memoria)**: `http://localhost:3000/h2-console`
-     - **JDBC URL**: `jdbc:h2:mem:supermercado_db`
-     - **User Name**: `sa`
-     - **Password**: *(dejar en blanco)*
+```
+Prouecto ingenieria web/
+├── SupermarketApi/                 # Backend RESTful en Spring Boot 3
+│   ├── src/main/java/com/supermarket/api/
+│   │   ├── config/                 # Configuración general
+│   │   ├── controller/             # Controladores REST (/api/auth, /health)
+│   │   ├── dto/                    # Objetos de transferencia y contratos JSON
+│   │   ├── entity/                 # Entidades JPA (User, Role)
+│   │   ├── exception/              # GlobalExceptionHandler (@RestControllerAdvice)
+│   │   ├── repository/             # Spring Data JPA Repositories
+│   │   ├── security/               # Filtros JWT y SecurityFilterChain
+│   │   └── service/                # Lógica de negocio (AuthService)
+│   ├── src/main/resources/         # application.properties y base H2
+│   ├── pom.xml                     # Maven Dependencies
+│   └── mvnw / mvnw.cmd             # Maven Wrapper ejecutable
+│
+├── frontend-app-ing-web/           # Frontend SPA en React 19 + Vite
+│   ├── src/
+│   │   ├── api/                    # Cliente Axios + Interceptor Bearer JWT
+│   │   ├── components/             # Componentes modulares (Atoms, Molecules, POS)
+│   │   ├── layouts/                # AuthLayout y MainLayout con Navbar RBAC
+│   │   ├── pages/                  # Vistas: Login, Register, Profile, POS, Admin, 403
+│   │   ├── routes/                 # AppRouter y ProtectedRoute con guards
+│   │   └── store/                  # AuthContext y CartContext
+│   ├── package.json
+│   └── vite.config.js
+│
+├── screenshots/                    # Capturas de pantalla del sistema en ejecución
+├── SISTEMA_DE_DISENO_SUPERMARKET_API.md  # Especificación oficial de Design Tokens
+├── PLAN_INTEGRACION_STITCH_FRONTEND.md   # Hoja de ruta de integración
+└── ESTADO_DEL_PROYECTO.md                # Bitácora de seguimiento de fases
+```
 
 ---
 
-## 🐳 Ejecución Alternativa con Docker y PostgreSQL (Opcional)
+## 📸 Galería de la Aplicación Funcionando
 
-Si dispones de Docker Desktop y deseas levantar la base de datos PostgreSQL persistente:
+A continuación se muestran las capturas de pantalla reales de la aplicación web en funcionamiento:
 
-1. Abre una terminal en la raíz del proyecto.
-2. Levanta los contenedores:
-   ```bash
-   docker compose up --build
-   ```
-3. Para detenerlos:
-   ```bash
-   docker compose down
-   ```
+### 1. Pantalla de Acceso & Login (`/login`)
+*Formulario con credenciales demo interactivas de 1 clic, botón de visibilidad de contraseña y detector en vivo del estado de la API.*
+
+![Inicio de Sesión](screenshots/01_login.png)
 
 ---
 
-## 📡 Referencia de Endpoints
+### 2. Registro Inteligente Multirrol (`/register`)
+*Selector interactivo de tarjetas de rol (Cliente, Cajero, Administrador), validador dinámico de contraseña en vivo (mín. 8 caracteres, 1 mayúscula, 1 número) y campo de `Employee ID` que aparece condicionalmente solo para empleados.*
 
-### 1. Health Check
-- **Método**: GET
-- **URL**: http://localhost:3000/health
-- **Acceso**: Público
-- **Respuesta Exitosa (200 OK)**:
-  `json
-  {
-    status: OK,
-    message: API funcionando correctamente
-  }
-  `
+![Registro de Usuario](screenshots/02_register.png)
 
 ---
 
-### 2. Registro de Usuario
-- **Método**: POST
-- **URL**: http://localhost:3000/api/auth/register
-- **Acceso**: Público
-- **Validaciones**:
-  - email: Formato válido y único.
-  - password: Mínimo 8 caracteres, al menos 1 mayúscula y 1 número.
-  - 
-ame: Mínimo 2 caracteres.
-  - ole: Opcional (CLIENTE, CAJERO, ADMIN). Por defecto es CLIENTE.
-  - employeeId: Requerido si el rol es CAJERO o ADMIN.
+### 3. Perfil de Usuario & Puntos de Lealtad (`/profile`)
+*Tarjeta de lealtad Fresh Rewards con puntos acumulados, cálculo de descuento en dólares, barra de progreso a Nivel Platino, código QR escaneable en caja y UUID copiable con un clic.*
 
-#### Ejemplo: Registro de Cliente
-`ash
-curl -X POST http://localhost:3000/api/auth/register \
-  -H Content-Type: application/json \
-  -d {"email": "cliente@correo.com", "password": "Password123", "name": "Juan Perez"}
-`
-**Respuesta (201 Created)**:
-`json
-{
-  status: success,
-  message: Usuario registrado exitosamente,
-  data: {
-    id: c1f10bc4-8b65-4a6c-9c71-0810db61a7a0,
-    email: cliente@correo.com,
-    name: Juan Perez,
-    role: CLIENTE,
-    loyaltyPoints: 0,
-    employeeId: null,
-    createdAt: 2026-09-21T17:30:00,
-    updatedAt: 2026-09-21T17:30:00
-  }
-}
-`
-
-#### Ejemplo: Registro de Administrador o Cajero
-`ash
-curl -X POST http://localhost:3000/api/auth/register \
-  -H Content-Type: application/json \
-  -d {"email": "admin@correo.com", "password": "Admin1234", "name": "Admin Super", "role": "ADMIN", "employeeId": "EMP-001"}
-`
+![Perfil y Lealtad](screenshots/03_profile.png)
 
 ---
 
-### 3. Inicio de Sesión (Login)
-- **Método**: POST
-- **URL**: http://localhost:3000/api/auth/login
-- **Acceso**: Público
+### 4. Terminal de Facturación POS de Cajero (`/cashier`)
+*Área de cobro con catálogo de abarrotes, lector simulado de códigos de barras, tabla interactiva de items con cantidades dinámicas, desglose de IVA (15%), canje de puntos y botón de cobro F12.*
 
-`ash
-curl -X POST http://localhost:3000/api/auth/login \
-  -H Content-Type: application/json \
-  -d {"email": "admin@correo.com", "password": "Admin1234"}
-`
-**Respuesta (200 OK)**:
-`json
-{
-  status: success,
-  message: Autenticación exitosa,
-  data: {
-    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...,
-    user: {
-      id: ...,
-      email: admin@correo.com,
-      name: Admin Super,
-      role: ADMIN
-    }
-  }
-}
-`
+![Terminal POS](screenshots/04_cashier_pos.png)
 
 ---
 
-### 4. Perfil de Usuario Autenticado
-- **Método**: GET
-- **URL**: http://localhost:3000/api/auth/profile
-- **Acceso**: Requiere autenticación (Bearer Token)
+### 5. Comprobante Electrónico de Caja (Ticket Imprimible)
+*Ticket de caja con desglose de productos, datos del operador, cálculo de impuestos, código QR para facturación electrónica y botón de impresión.*
 
-`ash
-curl -X GET http://localhost:3000/api/auth/profile \
-  -H Authorization: Bearer <TU_TOKEN_JWT>
-`
-**Respuesta (200 OK)**:
-`json
-{
-  message: Perfil de usuario,
-  user: {
-    userId: ...,
-    role: ADMIN
-  }
-}
-`
+![Ticket de Caja](screenshots/06_ticket.png)
 
 ---
 
-### 5. Área Exclusiva de Cajeros y Administradores
-- **Método**: GET
-- **URL**: http://localhost:3000/api/auth/cashier-area
-- **Acceso**: Requiere rol ADMIN o CAJERO
+### 6. Consola de Mando Administrativo (`/admin`)
+*Panel exclusivo para rol ADMIN con tarjetas de métricas KPI, tabla de gestión de personal con `Employee ID`, estado de turnos y pestaña de auditoría de seguridad JWT.*
 
-`ash
-curl -X GET http://localhost:3000/api/auth/cashier-area \
-  -H Authorization: Bearer <TU_TOKEN_JWT>
-`
-**Respuesta (200 OK)**:
-`json
-{
-  message: Área de facturación y validación
-}
-`
+![Consola Admin](screenshots/05_admin_console.png)
 
 ---
 
-### 6. Área Exclusiva de Administradores
-- **Método**: GET
-- **URL**: http://localhost:3000/api/auth/admin-only
-- **Acceso**: Requiere rol ADMIN
+### 7. Control de Acceso y Seguridad (`HTTP 403 Forbidden`)
+*Pantalla de excepción cuando un usuario intenta acceder a una ruta para la que no tiene permisos de rol (ej. Cliente intentando ingresar a `/admin` o `/cashier`).*
 
-`ash
-curl -X GET http://localhost:3000/api/auth/admin-only \
-  -H Authorization: Bearer <TU_TOKEN_JWT>
-`
-**Respuesta (200 OK)**:
-`json
-{
-  message: Bienvenido, Administrador
-}
-`
+![Acceso Denegado 403](screenshots/07_forbidden_403.png)
 
 ---
 
-## 🛡 Formato Estándar de Errores
+## ⚡ Guía de Ejecución Rápida (Para el Docente / Evaluador)
 
-En caso de error, la API responde con una estructura uniforme:
+Para probar el proyecto completo se requieren **dos terminales abiertas**:
 
-`json
-{
-  status: error,
-  message: Descripción detallada del error
-}
-`
+### Terminal 1: Iniciar el Backend (`SupermarketApi`)
+```bash
+# 1. Navegar a la carpeta del backend
+cd SupermarketApi
 
-| Código HTTP | Motivo |
-| :--- | :--- |
-| **400 Bad Request** | Email ya registrado, formato de contraseña inválido o falta employeeId en roles de empleado. |
-| **401 Unauthorized**| Credenciales incorrectas o token no proporcionado / inválido / expirado. |
-| **403 Forbidden**   | El usuario no posee los permisos/rol requeridos para acceder a la ruta. |
-| **404 Not Found**   | Recurso solicitado no encontrado. |
-| **500 Internal**    | Error inesperado del servidor. |
+# 2. Ejecutar con Maven Wrapper (No requiere instalar Maven ni Docker)
+# En Windows:
+.\mvnw.cmd spring-boot:run
+
+# En Linux / macOS:
+./mvnw spring-boot:run
+```
+> La API arrancará en: **`http://localhost:3000`**  
+> Health check: **`http://localhost:3000/health`**  
+> Consola de base de datos H2: **`http://localhost:3000/h2-console`** *(JDBC URL: `jdbc:h2:mem:supermercado_db`, Usuario: `sa`, Contraseña en blanco)*
+
+---
+
+### Terminal 2: Iniciar el Frontend (`frontend-app-ing-web`)
+```bash
+# 1. Navegar a la carpeta del frontend
+cd frontend-app-ing-web
+
+# 2. Instalar dependencias
+npm install
+
+# 3. Iniciar el servidor de desarrollo
+npm run dev
+```
+> El frontend abrirá en: **`http://localhost:5173`**
+
+---
+
+## 🔑 Credenciales de Prueba (Demo RBAC)
+
+La pantalla de login incluye una barra de **Auto-fill de 1 Clic** para facilitar las pruebas del evaluador:
+
+| Rol | Correo Electrónico | Contraseña | Privilegios y Vistas Disponibles |
+| :--- | :--- | :--- | :--- |
+| **`ADMIN`** | `admin@correo.com` | `Admin1234` | Acceso total a `/admin`, `/cashier` y `/profile` |
+| **`CAJERO`** | `cajero@correo.com` | `Password123` | Acceso a `/cashier` (Terminal POS) y `/profile` |
+| **`CLIENTE`** | `cliente@correo.com` | `Password123` | Acceso a autoservicio y `/profile` (Puntos Fresh) |
+
+---
+
+## 📡 Referencia de Endpoints del Backend
+
+| Método | Endpoint | Acceso Requerido | Descripción |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/health` | Público | Comprueba la disponibilidad y salud del servidor |
+| `POST` | `/api/auth/register` | Público | Registro de clientes o personal (`employeeId` obligatorio si es empleado) |
+| `POST` | `/api/auth/login` | Público | Autentica credenciales y emite el token JWT Bearer |
+| `GET` | `/api/auth/profile` | Autenticado | Retorna el UUID y rol del usuario conectado |
+| `GET` | `/api/auth/cashier-area` | `CAJERO` o `ADMIN` | Área de facturación y validación de cobro en caja |
+| `GET` | `/api/auth/admin-only` | `ADMIN` | Consola maestra de gestión y auditoría |
+
+---
+
+## 📑 Documentos de Arquitectura y Diseño
+
+Para una revisión más detallada del proceso de ingeniería, consulta los siguientes documentos en la raíz del repositorio:
+
+1. 📄 **[SISTEMA_DE_DISENO_SUPERMARKET_API.md](SISTEMA_DE_DISENO_SUPERMARKET_API.md):** Guía exhaustiva de tokens de diseño, contrastes WCAG AA, tipografías y especificaciones de componentes.
+2. 📄 **[PLAN_INTEGRACION_STITCH_FRONTEND.md](PLAN_INTEGRACION_STITCH_FRONTEND.md):** Plan maestro de integración de pantallas Stitch a React modular.
+3. 📄 **[ESTADO_DEL_PROYECTO.md](ESTADO_DEL_PROYECTO.md):** Bitácora con el 100% de las fases y componentes auditados.
+
+---
+
+> Desarrollado con ❤️ para el proyecto de **Ingeniería Web**.

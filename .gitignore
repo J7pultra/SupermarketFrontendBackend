@@ -1,8 +1,28 @@
-﻿target/
+# Node & Frontend dependencies
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+**/.vite/
+frontend-app-ing-web/.env.local
+
+# Java & Spring Boot Maven build artifacts
+target/
+**/target/
 *.class
-.idea/
-*.iml
-.vscode/
-.DS_Store
+*.jar
+!**/.mvn/wrapper/maven-wrapper.jar
+*.war
+
+# Environment & Credentials
 .env
-*.log
+
+# OS temporary files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Agent / IDE internal cache
+.agents/
+.system_generated/
