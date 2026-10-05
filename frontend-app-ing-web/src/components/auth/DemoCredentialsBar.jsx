@@ -5,7 +5,7 @@ export default function DemoCredentialsBar({ onSelect }) {
     {
       role: "ADMIN",
       email: "admin@correo.com",
-      password: "Admin1234",
+      password: "Password123",
       label: "ADMIN",
       icon: "shield_person",
       style: "hover:bg-[#e1e0ff] text-[#07006c]",

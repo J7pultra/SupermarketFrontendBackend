@@ -1,28 +1,36 @@
-# Node & Frontend dependencies
-node_modules/
-**/node_modules/
-dist/
-**/dist/
-.vite/
-**/.vite/
-frontend-app-ing-web/.env.local
+# Root .gitignore for SupermarketFrontendBackend Monorepo
 
-# Java & Spring Boot Maven build artifacts
-target/
+# Node & Frontend dependencies
+**/node_modules/
+**/dist/
+**/dist-ssr/
+frontend-app-ing-web/dist/
+frontend-app-ing-web/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Java / Maven build artifacts
 **/target/
+SupermarketApi/target/
 *.class
 *.jar
-!**/.mvn/wrapper/maven-wrapper.jar
 *.war
+*.ear
 
-# Environment & Credentials
-.env
+# Environment files
+.env.local
+.env.*.local
 
-# OS temporary files
+# IDEs & Editors
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
 .DS_Store
 Thumbs.db
-desktop.ini
-
-# Agent / IDE internal cache
-.agents/
-.system_generated/
